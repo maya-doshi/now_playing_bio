@@ -10,7 +10,7 @@ username = os.environ['LASTFM_USERNAME']
 api_key = os.environ['WEBHOOK_API_KEY']
 
 def update_track(artist, track):
-    now_playing = f'{artist} - {track}'
+    now_playing = f'{track} - {artist}'
     print(f'Now playing: {now_playing}')
 
     update_bio(now_playing)
