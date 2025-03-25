@@ -42,8 +42,9 @@ def update_bio(now_playing):
             rkey='self',
             swap_record=swap_record_cid,
             record=models.AppBskyActorProfile.Record(
-                avatar=current_profile.avatar,  # keep old avatar
-                banner=current_profile.banner,  # keep old banner
+                avatar=current_profile.avatar,          # keep old avatar
+                banner=current_profile.banner,          # keep old banner
+                pinned_post=current_profile.pinned_post # keep old pin
                 description=new_description,
                 display_name=old_display_name,
             ),
