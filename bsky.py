@@ -1,26 +1,27 @@
 import os
+import datetime
 from dotenv import load_dotenv
-
 from atproto import Client, models
 from atproto.exceptions import BadRequestError
 
+load_dotenv()
+client = Client()
+client.login(os.environ['BSKY_USERNAME'], os.environ['BSKY_APP_PASS'])
+
 def get_new_bio(old_bio, now_playing):
     # can be whatever
-    now_playing_icon = '💽 '
+    now_playing_icon = '\n\n'
     # remove everything after the now playing icon. also means that the now playing thingy will have
     # to be at the bottom
     new_bio = old_bio.split(now_playing_icon, 1)[0]
     new_bio += now_playing_icon + now_playing
 
-    print(f'New bio: {new_bio}')
+    print(f'\n{datetime.datetime.now()}')
+    print(f'{new_bio}')
     return new_bio
 
 def update_bio(now_playing):
     # straight up jacked from https://github.com/MarshalX/atproto/blob/main/examples/advanced_usage/update_profile.py
-    load_dotenv()
-    client = Client()
-    client.login(os.environ['BSKY_USERNAME'], os.environ['BSKY_APP_PASSWORD'])
-
     try:
         current_profile_record = client.app.bsky.actor.profile.get(client.me.did, 'self')
         current_profile = current_profile_record.value

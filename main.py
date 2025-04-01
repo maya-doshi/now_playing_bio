@@ -1,34 +1,66 @@
 from bsky import update_bio
-from flask import Flask, request
-from dotenv import load_dotenv
+import pylast
+import time
 import os
+from dotenv import load_dotenv
 
 load_dotenv()
 
-username = os.environ['LASTFM_USERNAME']
-# this is the api key that has to be passed to ?api_key=
-api_key = os.environ['WEBHOOK_API_KEY']
+LFM_KEY      = os.environ['LFM_KEY']
+LFM_SECRET   = os.environ['LFM_SECRET']
+LFM_USERNAME = os.environ['LFM_USERNAME']
 
-def update_track(artist, track):
-    now_playing = f'{track} - {artist}'
-    print(f'Now playing: {now_playing}')
+network = pylast.LastFMNetwork(api_key=LFM_KEY, api_secret=LFM_SECRET)
+user = network.get_user(LFM_USERNAME)
 
-    update_bio(now_playing)
+last_song_string = ""
 
-
-app = Flask(__name__)
-
-@app.route('/now_playing', methods=['POST'])
-def lastfm_endpoint():
-    provided_api_key = request.args.get('api_key')
+def update_track(track, playing):
+    global last_song_string
     
-    if provided_api_key == api_key:
-        artist = request.args.get('artist')
-        track = request.args.get('track')
-        update_track(artist, track)
-        return "Success", 200
+    if track is None:
+        return
+
+    if playing:
+        song_string = f'🎶 '
     else:
-        return "Unauthorized", 401
+        song_string = f'💿 '
+
+    try:
+        title  = track.get_title()
+        artist = track.get_artist().get_name()
+    except:
+        print("fucked up something")
+        return
+
+    song_string += f'{title} - {artist}'
+
+    if song_string != last_song_string:
+        update_bio(song_string)
+        last_song_string = song_string
+
+def get_last():
+    global last_song_string
+    try:
+        last_track = user.get_recent_tracks(limit=1)[0].track
+        update_track(last_track, False)
+    except:
+        return
+
+def get_status():
+    global last_song_string
+    try:
+        last_track = user.get_now_playing()
+        playing = True
+        update_track(last_track, playing)
+        if last_track is None:
+            get_last()
+    except:
+        return
+
+    return
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    while True:
+        get_status()
+        time.sleep(15)
